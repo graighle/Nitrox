@@ -48,24 +48,16 @@ namespace NitroxServer.GameLogic.Unlockables
         }
 
         [ProtoMember(4)]
-        public List<PDAEntry> SerializedPartiallyUnlockedByTechType
+        public Dictionary<TechTypeModel, PDAEntry> SerializedPartiallyUnlockedByTechType
         {
             get
             {
                 lock (partiallyUnlockedByTechType)
                 {
-                    return new List<PDAEntry>(partiallyUnlockedByTechType.Values);
+                    return partiallyUnlockedByTechType;
                 }
             }
-            set
-            {
-                partiallyUnlockedByTechType = new Dictionary<TechTypeModel, PDAEntry>();
-
-                foreach (PDAEntry entry in value)
-                {
-                    partiallyUnlockedByTechType.Add(entry.TechType, entry);
-                }
-            }
+            set { partiallyUnlockedByTechType = value; }
         }
 
         [ProtoMember(5)]

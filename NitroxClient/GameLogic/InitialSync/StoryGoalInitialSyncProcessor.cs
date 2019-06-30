@@ -1,7 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using NitroxClient.GameLogic.InitialSync.Base;
-using NitroxModel.Logger;
 using NitroxModel.Packets;
 using Story;
 
@@ -24,12 +22,26 @@ namespace NitroxClient.GameLogic.InitialSync
         
         private void SetCompletedStoryGoals(List<string> storyGoalData)
         {
-            StoryGoalManager.main.completedGoals.Clear();
+            // StoryGoalManager.main.OnSceneObjectsLoaded() has already called.
+            // So make a new hashset whihc contains only uninitialized goals.
+            HashSet<string> uninitializedCompletedGoals = new HashSet<string>();
             foreach (string completedGoal in storyGoalData)
             {
-                StoryGoalManager.main.completedGoals.Add(completedGoal);
+                // Each key must have "OnPlay" prefix.
+                // See StoryGoalManager.ExecutePendingRadioMessage().
+                string key = "OnPlay" + completedGoal;
+               if(!StoryGoalManager.main.completedGoals.Contains(key))
+                {
+                    uninitializedCompletedGoals.Add(key);
+                }
             }
-            Log.Info("Received initial sync packet with " + storyGoalData.Count + " completed story goals");
+
+            // Call notifications.
+            StoryGoalManager.main.compoundGoalTracker.NotifyGoalComplete(uninitializedCompletedGoals);
+            foreach (string completedGoal in uninitializedCompletedGoals)
+            {
+                StoryGoalManager.main.onGoalUnlockTracker.NotifyGoalComplete(completedGoal);
+            }
         }
     }
 }
